@@ -342,101 +342,102 @@ def crypto_core(w, n, s, p=False, debug=False):
     r0 = r2 | r0 << 8
     t17 = r0
 
-    r0 = t1
-    r1 = salsa_const[0]
-    r0 = (r0 + r1) & 0xffffffff
-    t18 = r0
-    r0 = (r0 << 0x10) & 0xffffffff
+    result = []
+    h_core_rounds = 0
+    h_t_core_rounds = len(w) / 64
 
-    h_res = h_core_a([t18, t10, r0, t1, 0, salsa_const[2], t2, t11, salsa_const[3],
-                      t5, t16, t13, salsa_const[1], t7, t17, t14, t18])
+    while h_core_rounds < h_t_core_rounds:
+        r0 = t1
+        r1 = salsa_const[0]
+        r0 = (r0 + r1) & 0xffffffff
+        t18 = r0
+        r0 = (r0 ^ h_core_rounds) & 0xffffffff
+        t18_a = r0
+        r0 = (r0 << 0x10) & 0xffffffff
 
-    rounds = 8
-    while rounds > 0:
-        h_res = h_core_a([h_res[15], h_res[8], h_res[16], h_res[13],
-                          h_res[7], h_res[3], h_res[2], h_res[12], h_res[6],
-                          h_res[5], h_res[11], h_res[1], h_res[10], h_res[9],
-                          h_res[0], h_res[4], h_res[14]])
-        rounds -= 1
+        h_res = h_core_a([t18, t10, r0, t1, 0, salsa_const[2], t2, t11, salsa_const[3],
+                          t5, t16, t13, salsa_const[1], t7, t17, t14, t18])
+        rounds = 8
+        while rounds > 0:
+            h_res = h_core_a([h_res[15], h_res[8], h_res[16], h_res[13],
+                              h_res[7], h_res[3], h_res[2], h_res[12], h_res[6],
+                              h_res[5], h_res[11], h_res[1], h_res[10], h_res[9],
+                              h_res[0], h_res[4], h_res[14]])
+            rounds -= 1
 
-    r1 = h_res[17]
-    r2 = salsa_const[0]
-    r1 = (r1 + r2) & 0xffffffff
-    c_1 = r1
-    r0 = h_res[3]
-    r1 = salsa_const[2]
-    r0 = (r0 + r1) & 0xffffffff
-    c_2 = r0
+        r1 = h_res[17]
+        r2 = salsa_const[0]
+        r1 = (r1 + r2) & 0xffffffff
+        c_1 = r1
+        r0 = h_res[3]
+        r1 = salsa_const[2]
+        r0 = (r0 + r1) & 0xffffffff
+        c_2 = r0
 
-    m_stracts = [
-        h_stract(salsa_const[3], h_res[6]),
-        h_stract(salsa_const[1], h_res[10]),
-        h_stract(t1, h_res[13]),
-        h_stract(t2, h_res[2]),
-        h_stract(t5, h_res[5]),
-        h_stract(t7, h_res[9]),
-        h_stract(t10, h_res[8]),
-        h_stract(t11, h_res[12]),
-        h_stract(t13, h_res[1]),
-        h_stract(t14, h_res[4]),
-        h_stract(0, h_res[18]),
-        h_stract(0, h_res[7]),
-        h_stract(t16, h_res[11]),
-        h_stract(t17, h_res[0])
-    ]
+        m_stracts = [
+            h_stract(salsa_const[3], h_res[6]),
+            h_stract(salsa_const[1], h_res[10]),
+            h_stract(t1, h_res[13]),
+            h_stract(t2, h_res[2]),
+            h_stract(t5, h_res[5]),
+            h_stract(t7, h_res[9]),
+            h_stract(t10, h_res[8]),
+            h_stract(t11, h_res[12]),
+            h_stract(t13, h_res[1]),
+            h_stract(t14, h_res[4]),
+            h_stract(0, h_res[18]),
+            h_stract(0, h_res[7]),
+            h_stract(t16, h_res[11]),
+            h_stract(t17, h_res[0])
+        ]
 
-    m_spack = []
-    m_spack += h_spack(c_1)
-    m_spack += h_spack(c_2)
-    for x in m_stracts:
-        m_spack += h_spack(x)
+        m_spack = []
+        m_spack += h_spack(c_1)
+        m_spack += h_spack(c_2)
+        for x in m_stracts:
+            m_spack += h_spack(x)
 
-    rounds = 0
-    ulim = 64 * h_core_rounds
-    if ulim + 64 > len(w):
-        df = (ulim + 64) - len(payload)
         rounds = 0
-        while df > 0:
-            s_a = m_spack[rounds]
-            w_a = w[ulim + rounds]
-            s_a = (w_a ^ s_a) & 0xff
-            result.append(s_a)
-            df -= 1
-            rounds += 1
+        ulim = 64 * h_core_rounds
+        if ulim + 64 > len(w):
+            df = (ulim + 64) - len(w)
+            rounds = 0
+            while df > 0:
+                s_a = m_spack[rounds]
+                w_a = w[ulim + rounds]
+                s_a = (w_a ^ s_a) & 0xff
+                result.append(s_a)
+                df -= 1
+                rounds += 1
 
-        s_a_1 = result[:0x10]
-        w_a = [
-            s_a_1[3] & 0xf,
-            s_a_1[4] & 0xfc,
-            s_a_1[7] & 0xf,
-            s_a_1[8] & 0xfc,
-            s_a_1[11] & 0xf,
-            s_a_1[12] & 0xfc,
-            s_a_1[15] & 0xf,
-            ]
-        s_a_2 = result[0x20:0x30]
-        s_a_2.append(1)
+            s_a_1 = result[:0x10]
+            w_a = [
+                s_a_1[3] & 0xf,
+                s_a_1[4] & 0xfc,
+                s_a_1[7] & 0xf,
+                s_a_1[8] & 0xfc,
+                s_a_1[11] & 0xf,
+                s_a_1[12] & 0xfc,
+                s_a_1[15] & 0xf,
+                ]
+            s_a_2 = result[0x20:0x30]
+            s_a_2.append(1)
 
-        mul_add_rounds = 0
-        mul_add_values = []
+            mul_add_rounds = 0
+            mul_add_values = []
 
-        while mul_add_rounds != 0x11:
-            mul_add_values.append(h_mul_add_core(mul_add_rounds, s_a_1, s_a_2, w_a))
-            mul_add_rounds += 1
+            while mul_add_rounds != 0x11:
+                mul_add_values.append(h_mul_add_core(mul_add_rounds, s_a_1, s_a_2, w_a))
+                mul_add_rounds += 1
+        else:
+            while rounds < 64:
+                w_a = w[rounds + ulim]
+                s_a = m_spack[rounds]
+                s_a = (s_a ^ w_a) & 0xff
+                result.append(s_a)
+                rounds += 1
 
-        for x in mul_add_values:
-            print(hex(x))
-        hexdump(bytes(s_a_1))
-        hexdump(bytes(s_a_2))
-    else:
-        while rounds < 64:
-            w_a = w[rounds + ulim]
-            s_a = m_spack[rounds]
-            s_a = (s_a ^ w_a) & 0xff
-            result.append(s_a)
-            rounds += 1
-
-    h_core_rounds += 1
+        h_core_rounds += 1
 
 
 def h_core_a(a):
@@ -702,11 +703,6 @@ def h_mul_add_core(r, s1, s2, w1):
                             mul_a[rounds],
                             mul_add,
                             r_a)
-
-        if r == 0x10:
-            print(hex(mul_add))
-            print('')
-
         if mul_a[rounds] == 0 and r < 0x10:
             r_a = 1
         rounds += 1
