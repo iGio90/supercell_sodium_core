@@ -253,7 +253,6 @@ def crypto_core(w, n, s):
     r2 = r1 << 8
     r0 = r0 | r1 << 8
     r2 = r2 ^ r1 << 8
-    r2 = (r2 - r1 << 8) & 0xffffffff
     r1 = result[0x8]
     r2 = result[0xf]
     r0 = r1 | r0 << 8
