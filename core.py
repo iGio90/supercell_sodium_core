@@ -385,24 +385,58 @@ def crypto_core(w, n, s, p=False, debug=False):
         h_stract(t17, h_res[0])
     ]
 
-    m_spack = [
-        h_spack(c_1),
-        h_spack(c_2),
-        h_spack(m_stracts[0]),
-        h_spack(m_stracts[1]),
-        h_spack(m_stracts[2]),
-        h_spack(m_stracts[3]),
-        h_spack(m_stracts[4]),
-        h_spack(m_stracts[5]),
-        h_spack(m_stracts[6]),
-        h_spack(m_stracts[7]),
-        h_spack(m_stracts[8]),
-        h_spack(m_stracts[9]),
-        h_spack(m_stracts[10]),
-        h_spack(m_stracts[11]),
-        h_spack(m_stracts[12]),
-        h_spack(m_stracts[13]),
-    ]
+    m_spack = []
+    m_spack += h_spack(c_1)
+    m_spack += h_spack(c_2)
+    for x in m_stracts:
+        m_spack += h_spack(x)
+
+    rounds = 0
+    ulim = 64 * h_core_rounds
+    if ulim + 64 > len(w):
+        df = (ulim + 64) - len(payload)
+        rounds = 0
+        while df > 0:
+            s_a = m_spack[rounds]
+            w_a = w[ulim + rounds]
+            s_a = (w_a ^ s_a) & 0xff
+            result.append(s_a)
+            df -= 1
+            rounds += 1
+
+        s_a_1 = result[:0x10]
+        w_a = [
+            s_a_1[3] & 0xf,
+            s_a_1[4] & 0xfc,
+            s_a_1[7] & 0xf,
+            s_a_1[8] & 0xfc,
+            s_a_1[11] & 0xf,
+            s_a_1[12] & 0xfc,
+            s_a_1[15] & 0xf,
+            ]
+        s_a_2 = result[0x20:0x30]
+        s_a_2.append(1)
+
+        mul_add_rounds = 0
+        mul_add_values = []
+
+        while mul_add_rounds != 0x11:
+            mul_add_values.append(h_mul_add_core(mul_add_rounds, s_a_1, s_a_2, w_a))
+            mul_add_rounds += 1
+
+        for x in mul_add_values:
+            print(hex(x))
+        hexdump(bytes(s_a_1))
+        hexdump(bytes(s_a_2))
+    else:
+        while rounds < 64:
+            w_a = w[rounds + ulim]
+            s_a = m_spack[rounds]
+            s_a = (s_a ^ w_a) & 0xff
+            result.append(s_a)
+            rounds += 1
+
+    h_core_rounds += 1
 
 
 def h_core_a(a):
@@ -655,3 +689,47 @@ def h_spack(a):
         a >> 16 & 0xff,
         a >> 24 & 0xff
     ]
+
+
+def h_mul_add_core(r, s1, s2, w1):
+    mul_a = h_mul_add_fields(r, s1, w1)
+    mul_add = 0
+    rounds = 0
+    r_a = 0
+
+    while rounds != 0x11:
+        mul_add = h_mul_add(s2[rounds],
+                            mul_a[rounds],
+                            mul_add,
+                            r_a)
+
+        if r == 0x10:
+            print(hex(mul_add))
+            print('')
+
+        if mul_a[rounds] == 0 and r < 0x10:
+            r_a = 1
+        rounds += 1
+
+    return mul_add
+
+
+def h_mul_add(a, b, m, r):
+    if r > 0:
+        b = (((b + (b << 2)) & 0xfffffff) << 6) & 0xffffffff
+    return (b * a + m) & 0xffffffff
+
+
+def h_mul_add_fields(r, s1, w1):
+    fields = [w1[6], s1[0xe], s1[0xd], w1[5], w1[4], s1[0xa],
+              s1[9], w1[3], w1[2], s1[6], s1[5], w1[1], w1[0],
+              s1[2], s1[1], s1[0]]
+    f_s = []
+    if r < 0x10:
+        while r >= 0:
+            a = fields.pop()
+            f_s_a = [a]
+            f_s = f_s_a + f_s
+            r -= 1
+    f_s.append(0)
+    return f_s + fields
