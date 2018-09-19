@@ -42,7 +42,7 @@ def bic(a, b):
     return r
 
 
-def crypto_core(w, n, s, p=False, debug=False):
+def crypto_core(w, n, s):
     a = n[0xc] | (n[0xd] | (n[0xe] | n[0xf] << 8) << 8) << 8
     b = n[0x8] | (n[0x9] | (n[0xa] | n[0xb] << 8) << 8) << 8
     c = n[0x4] | (n[0x5] | (n[0x6] | n[0x7] << 8) << 8) << 8
@@ -57,20 +57,13 @@ def crypto_core(w, n, s, p=False, debug=False):
     k = s[0x4] | (s[0x5] | (s[0x6] | s[0x7] << 8) << 8) << 8
     l = s[0x0] | (s[0x1] | (s[0x2] | s[0x3] << 8) << 8) << 8
 
-    t1 = 0  # 0x1c
-    t2 = 0  # 0x18
-    t3 = 0  # 0x8
-    t4 = b  # 0x3c
-    t5 = 0  # 0xc
-    t6 = 0  # 0x14
-    t7 = l  # 0x2c
-    t8 = h  # 0x30
-    t9 = 0  # 0x4
-    t10 = 0  # 0x10
-    t11 = i  # 0x34
-    t12 = salsa_const[1]  # 0x38
-    t13 = e  # 0x24
-    t14 = j  # 0x28
+    t4 = b
+    t7 = l
+    t8 = h
+    t11 = i
+    t12 = salsa_const[1]
+    t13 = e
+    t14 = j
     result = []
 
     r0 = salsa_const[2]
@@ -232,12 +225,11 @@ def crypto_core(w, n, s, p=False, debug=False):
         result.append(r6 & 0x000000ff)
         r6 = r6 >> 8
         r1 += 1
-    if not p:
+    if len(w) < 1:
         return bytes(result)
 
     print(bytes(result).hex())
 
-    # obfuscation will kill me. im gonna clean this up later as the first part
     r2 = result[0x3]
     r1 = result[0x2]
     r1 = r1 | r2 << 8
@@ -261,11 +253,9 @@ def crypto_core(w, n, s, p=False, debug=False):
     t2 = r0
     r0 = result[0x9]
     r2 = r1 << 8
-    t3 = r2
     r0 = r0 | r1 << 8
     r2 = r2 ^ r1 << 8
     r2 = (r2 - r1 << 8) & 0xffffffff
-    t4 = r2
     r1 = result[0x8]
     r2 = result[0xf]
     r0 = r1 | r0 << 8
@@ -284,7 +274,6 @@ def crypto_core(w, n, s, p=False, debug=False):
     r0 = result[0x11]
     r1 = r1 | r2 << 8
     r0 = r0 | r1 << 8
-    t9 = r0
     r1 = result[0x10]
     r0 = r1 | r0 << 8
     r1 = result[0x17]
@@ -325,7 +314,6 @@ def crypto_core(w, n, s, p=False, debug=False):
     r0 = r0 & r2
     r0 = (r0 - r1) & 0xffffffff
     r0 -= 1
-    pd1 = r0
     r2 = n[0x11]
     r1 = n[0x10]
     r0 = t15
@@ -352,7 +340,6 @@ def crypto_core(w, n, s, p=False, debug=False):
         r0 = (r0 + r1) & 0xffffffff
         t18 = r0
         r0 = (r0 ^ h_core_rounds) & 0xffffffff
-        t18_a = r0
         r0 = (r0 << 0x10) & 0xffffffff
 
         h_res = h_core_a([t18, t10, r0, t1, 0, salsa_const[2], t2, t11, salsa_const[3],
@@ -385,7 +372,7 @@ def crypto_core(w, n, s, p=False, debug=False):
             h_stract(t11, h_res[12]),
             h_stract(t13, h_res[1]),
             h_stract(t14, h_res[4]),
-            h_stract(0, h_res[18]),
+            h_stract(h_core_rounds, h_res[18]),
             h_stract(0, h_res[7]),
             h_stract(t16, h_res[11]),
             h_stract(t17, h_res[0])
@@ -420,15 +407,101 @@ def crypto_core(w, n, s, p=False, debug=False):
                 s_a_1[12] & 0xfc,
                 s_a_1[15] & 0xf,
                 ]
-            s_a_2 = result[0x20:0x30]
-            s_a_2.append(1)
 
-            mul_add_rounds = 0
-            mul_add_values = []
+            w_le = len(w)
+            w_lle_s = 0x20
+            smul_values = []
 
-            while mul_add_rounds != 0x11:
-                mul_add_values.append(h_mul_add_core(mul_add_rounds, s_a_1, s_a_2, w_a))
-                mul_add_rounds += 1
+            while w_lle_s < w_le:
+                s_a_2 = result[w_lle_s:w_lle_s + 0x10]
+                s_a_2.append(1)
+
+                if len(smul_values) > 0:
+                    rounds = 0
+                    r0 = 0
+                    while rounds != 0x11:
+                        r3 = smul_values[rounds]
+                        r6 = s_a_2[rounds]
+                        r0 = (r0 + r3) & 0xffffffff
+                        r0 = (r0 + r6) & 0xffffffff
+                        smul_values[rounds] = r0 & 0x000000ff
+                        r0 = r0 >> 8
+                        rounds += 1
+                else:
+                    smul_values = s_a_2
+
+                mul_add_rounds = 0
+                mul_add_values = []
+                while mul_add_rounds != 0x11:
+                    mul_add_values.append(h_mul_add_core(mul_add_rounds, s_a_1, smul_values, w_a))
+                    mul_add_rounds += 1
+
+                rounds = 0
+                r0 = 0
+                while rounds != 0x10:
+                    r3 = mul_add_values[rounds]
+                    r0 = (r0 + r3) & 0xffffffff
+                    smul_values[rounds] = r0 & 0x000000ff
+                    r0 = r0 >> 8
+                    rounds += 1
+                r1 = mul_add_values[0x10]
+                r0 = (r0 + r1) & 0xffffffff
+                r1 = r0 & 3
+                r0 = r0 >> 2
+                smul_values[rounds] = r1
+                r0 = r0 + (r0 << 2)
+
+                rounds = 0
+                while rounds != 0x10:
+                    r3 = smul_values[rounds]
+                    r0 = (r0 + r3) & 0xffffffff
+                    smul_values[rounds] = r0 & 0x000000ff
+                    r0 = r0 >> 8
+                    rounds += 1
+                w_lle_s += 0x10
+
+            rounds = 0
+            r1 = 0
+            r2_v = [0x5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xfc]
+            s_a_1 = []
+            while rounds != 0x11:
+                r6 = smul_values[rounds]
+                r2 = r2_v[rounds]
+                r1 = (r1 + r6) & 0xffffffff
+                r1 = (r1 + r2) & 0xffffffff
+                r2 = r1 & 0x000000ff
+                r1 = r1 >> 8
+                s_a_1.append(r2)
+                rounds += 1
+
+            rounds = 0
+            r1 = s_a_1[0x10]
+            r1 = (r0 - (r1 >> 7)) & 0xffffffff
+            while rounds != 0x11:
+                r2 = smul_values[rounds]
+                r6 = s_a_1[rounds]
+                r2 = (r2 ^ r6) & 0xffffffff
+                r2 = r2 & r1
+                r2 = (r2 ^ r6) & 0xffffffff
+                smul_values[rounds] = r2
+                rounds += 1
+
+            s_a_2 = result[0x10:0x20]
+            s_a_2.append(0)
+            r0 = 0
+            rounds = 0
+            while rounds != 0x11:
+                r3 = smul_values[rounds]
+                r6 = s_a_2[rounds]
+                r0 = (r0 + r3) & 0xffffffff
+                r0 = (r0 + r6) & 0xffffffff
+                r3 = r0 & 0x000000ff
+                r0 = r0 >> 8
+                smul_values[rounds] = r3
+                rounds += 1
+
+            result = smul_values[:0x10] + result[0x20:]
+            return bytes(result)
         else:
             while rounds < 64:
                 w_a = w[rounds + ulim]
@@ -436,7 +509,6 @@ def crypto_core(w, n, s, p=False, debug=False):
                 s_a = (s_a ^ w_a) & 0xff
                 result.append(s_a)
                 rounds += 1
-
         h_core_rounds += 1
 
 

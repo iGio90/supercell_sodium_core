@@ -4,8 +4,8 @@ The encryption logic is quite different, but what's more challenging in all of t
 Say bye bye to hsalsa/salsa core from sodium.
 The new core has been manually written by Supercell and obfuscated as hell with Arxan.
 
-The code is WIP and suck hard, i'll need to clean the loops later once i finish it... the hardest part is done and the logic looks quite clear at me.
-I'm still translating line by line the ARM assembly code.
+The code is suck hard, i'll need to clean some loops but hey... wtf I already ported more then 2483094832905845 instructions.
+All of this code has been written line by line, for many values i kept register names to have a clue of where the damn the code was.
 
 ### Hey leeeeeeehers!
 
