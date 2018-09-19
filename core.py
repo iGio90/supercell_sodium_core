@@ -248,7 +248,7 @@ def crypto_core(w, n, s, p=False, debug=False):
     r1 = result[0]
     r2 = result[0x7]
     r0 = r1 | r0 << 8
-    t1 = r0  # 0x99b98288
+    t1 = r0
     r1 = result[0x6]
     r0 = result[0x5]
     r1 = r1 | r2 << 8
@@ -258,37 +258,37 @@ def crypto_core(w, n, s, p=False, debug=False):
     r0 = r1 | r0 << 8
     r1 = result[0xa]
     r1 = r1 | r2 << 8
-    t2 = r0  # 0x93a6b858
+    t2 = r0
     r0 = result[0x9]
     r2 = r1 << 8
-    t3 = r2  # 0xa19700
+    t3 = r2
     r0 = r0 | r1 << 8
     r2 = r2 ^ r1 << 8
     r2 = (r2 - r1 << 8) & 0xffffffff
-    t4 = r2  # 0xff5e6900
+    t4 = r2
     r1 = result[0x8]
     r2 = result[0xf]
     r0 = r1 | r0 << 8
     r1 = result[0xe]
-    t5 = r0  # 0xa197ab2d
+    t5 = r0
     r0 = result[0xd]
     r1 = r1 | r2 << 8
     r0 = r0 | r1 << 8
-    t6 = r0  # 0x354a37
+    t6 = r0
     r1 = t6
     r2 = result[0x13]
     r0 = result[0xc]
     r0 = r0 | r1 << 8
     r1 = result[0x12]
-    t7 = r0  # 0x354a37e0
+    t7 = r0
     r0 = result[0x11]
     r1 = r1 | r2 << 8
     r0 = r0 | r1 << 8
-    t9 = r0  # 0xe324ce
+    t9 = r0
     r1 = result[0x10]
     r0 = r1 | r0 << 8
     r1 = result[0x17]
-    t10 = r0  # 0xe324ce5a
+    t10 = r0
     r0 = result[0x16]
     r1 = r1 << 8
     r0 |= r1
@@ -296,17 +296,17 @@ def crypto_core(w, n, s, p=False, debug=False):
     r2 = result[0x14]
     r0 = r6 | r0 << 8
     r0 = r2 | r0 << 8
-    t11 = r0  # 0xdf7ec5a4
+    t11 = r0
     r0 = result[0x1b]
     r0 = r0 << 8
-    t12 = r0  # 0x6000
+    t12 = r0
     r0 = result[0x1a]
     r0 |= t12
     r6 = result[0x19]
     r1 = result[0x18]
     r0 = r6 | r0 << 8
     r0 = r1 | r0 << 8
-    t13 = r0  # 0x60f0b806
+    t13 = r0
     r0 = result[0x1f]
     r6 = r0 << 8
     r0 = result[0x1e]
@@ -315,23 +315,23 @@ def crypto_core(w, n, s, p=False, debug=False):
     r2 = result[0x1c]
     r0 = r1 | r0 << 8
     r0 = r2 | r0 << 8
-    t14 = r0  # 0x4db81a0e
+    t14 = r0
     r2 = n[0x13]
     r1 = n[0x12]
     r1 = r1 | r2 << 8
     r1 = r1 << 8
-    t15 = r1  # 0xd0a200
+    t15 = r1
     r1 = r0 | r2
     r0 = r0 & r2
     r0 = (r0 - r1) & 0xffffffff
     r0 -= 1
-    pd1 = r0   # 0xb247e521
+    pd1 = r0
     r2 = n[0x11]
     r1 = n[0x10]
     r0 = t15
     r0 |= r2
     r0 = r1 | r0 << 8
-    t16 = r0  # 0xd0a268df
+    t16 = r0
     r1 = n[0x17]
     r0 = n[0x16]
     r0 = r0 | r1 << 8
@@ -340,12 +340,12 @@ def crypto_core(w, n, s, p=False, debug=False):
     r0 |= r1
     r2 = n[0x14]
     r0 = r2 | r0 << 8
-    t17 = r0  # 0x537f99ea
+    t17 = r0
 
     r0 = t1
     r1 = salsa_const[0]
     r0 = (r0 + r1) & 0xffffffff
-    t18 = r0  # 0xfb29faed
+    t18 = r0
     r0 = (r0 << 0x10) & 0xffffffff
 
     h_res = h_core_a([t18, t10, r0, t1, 0, salsa_const[2], t2, t11, salsa_const[3],
@@ -358,12 +358,55 @@ def crypto_core(w, n, s, p=False, debug=False):
                           h_res[5], h_res[11], h_res[1], h_res[10], h_res[9],
                           h_res[0], h_res[4], h_res[14]])
         rounds -= 1
-    for x in h_res:
-        print(hex(x))
+
+    r1 = h_res[17]
+    r2 = salsa_const[0]
+    r1 = (r1 + r2) & 0xffffffff
+    c_1 = r1
+    r0 = h_res[3]
+    r1 = salsa_const[2]
+    r0 = (r0 + r1) & 0xffffffff
+    c_2 = r0
+
+    m_stracts = [
+        h_stract(salsa_const[3], h_res[6]),
+        h_stract(salsa_const[1], h_res[10]),
+        h_stract(t1, h_res[13]),
+        h_stract(t2, h_res[2]),
+        h_stract(t5, h_res[5]),
+        h_stract(t7, h_res[9]),
+        h_stract(t10, h_res[8]),
+        h_stract(t11, h_res[12]),
+        h_stract(t13, h_res[1]),
+        h_stract(t14, h_res[4]),
+        h_stract(0, h_res[18]),
+        h_stract(0, h_res[7]),
+        h_stract(t16, h_res[11]),
+        h_stract(t17, h_res[0])
+    ]
+
+    m_spack = [
+        h_spack(c_1),
+        h_spack(c_2),
+        h_spack(m_stracts[0]),
+        h_spack(m_stracts[1]),
+        h_spack(m_stracts[2]),
+        h_spack(m_stracts[3]),
+        h_spack(m_stracts[4]),
+        h_spack(m_stracts[5]),
+        h_spack(m_stracts[6]),
+        h_spack(m_stracts[7]),
+        h_spack(m_stracts[8]),
+        h_spack(m_stracts[9]),
+        h_spack(m_stracts[10]),
+        h_spack(m_stracts[11]),
+        h_spack(m_stracts[12]),
+        h_spack(m_stracts[13]),
+    ]
 
 
 def h_core_a(a):
-    r = [0] * 17
+    r = [0] * 19
     s = [0] * 31
 
     r1 = a[0] >> 16
@@ -591,4 +634,24 @@ def h_core_a(a):
     r0 = (r0 ^ r1) & 0xffffffff
     r[15] = r0
     r[16] = (r0 << 0x10) & 0xffffffff
+    r[17] = s[23]
+    r[18] = s[24]
     return r
+
+
+def h_stract(a, b):
+    r2 = b
+    r3 = a
+    r2 = (-1 - r2) & 0xffffffff
+    r3 -= 1
+    r2 = r3 - r2
+    return r2 & 0xffffffff
+
+
+def h_spack(a):
+    return [
+        a & 0xff,
+        a >> 8 & 0xff,
+        a >> 16 & 0xff,
+        a >> 24 & 0xff
+    ]
