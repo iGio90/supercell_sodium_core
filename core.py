@@ -228,8 +228,6 @@ def crypto_core(w, n, s):
     if len(w) < 1:
         return bytes(result)
 
-    print(bytes(result).hex())
-
     r2 = result[0x3]
     r1 = result[0x2]
     r1 = r1 | r2 << 8
