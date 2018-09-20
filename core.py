@@ -27,7 +27,6 @@ import math
 
 
 salsa_const = [0x61707865, 0x6b206574, 0x3320646e, 0x79622D32]
-pad = bytes.fromhex('00' * 32)
 
 
 def _ror(val, bits, bit_size):
@@ -45,7 +44,7 @@ def bic(a, b):
     return r
 
 
-def crypto_core(w, n, s):
+def crypto_core(w, n, s, p):
     a = n[0xc] | (n[0xd] | (n[0xe] | n[0xf] << 8) << 8) << 8
     b = n[0x8] | (n[0x9] | (n[0xa] | n[0xb] << 8) << 8) << 8
     c = n[0x4] | (n[0x5] | (n[0x6] | n[0x7] << 8) << 8) << 8
@@ -232,8 +231,7 @@ def crypto_core(w, n, s):
     if len(w) < 1:
         return bytes(result)
 
-    # pad payload
-    w = pad + w
+    w = bytes([0] * p) + w
 
     r2 = result[0x3]
     r1 = result[0x2]
@@ -257,7 +255,6 @@ def crypto_core(w, n, s):
     r1 = r1 | r2 << 8
     t2 = r0
     r0 = result[0x9]
-    r2 = r1 << 8
     r0 = r0 | r1 << 8
     r1 = result[0x8]
     r2 = result[0xf]
@@ -398,6 +395,11 @@ def crypto_core(w, n, s):
             while df > 0 and ulim + rounds < len(w):
                 s_a = m_spack[rounds]
                 w_a = w[ulim + rounds]
+
+                print(hex(s_a))
+                print(hex(w_a))
+                print('')
+
                 s_a = (w_a ^ s_a) & 0xff
                 result.append(s_a)
                 df -= 1
@@ -515,7 +517,7 @@ def crypto_core(w, n, s):
                 rounds += 1
 
             r = smul_values[:0x10]
-            if len(w) - len(pad) >= 0x20:
+            if len(w) - p >= 0x20:
                 r += result[0x20:]
             return bytes(r)
         else:
