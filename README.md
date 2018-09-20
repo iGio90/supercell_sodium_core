@@ -1,4 +1,4 @@
-Just the new Supercell encryption core, revengineered through over 5 millions lines of obfuscated ASM.
+Just the new Supercell encryption core (since Clash Of Clans 10+), revengineered through over 5 millions lines of obfuscated ASM.
 The code has been manually written line by line, needless to say the amount of effort needed - and so the fun i had.
 This is my own representation, the real C code would probably looks neat and clean but... it does the job!
 
