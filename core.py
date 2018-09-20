@@ -801,3 +801,8 @@ def h_aaas(a, b, c):
     b = (((c + a) & 0xffffffff + b) & 0xffffffff) & 0x000000ff
     c = c >> 8
     return b, c
+
+
+def h_aas(a, b):
+    return (b + a) & 0xffffffff, b >> 8
+
