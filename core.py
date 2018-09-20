@@ -25,16 +25,23 @@
 # (i.e scalarmult, sigma const, etc.)
 #
 # The logic is not that far from what is known,
-# however, owning the crypto core only won't be
-# enough to create a client able to send and recv data.
+# however, owning the crypto core only
+# (which in any case, is the hardest job.. let's say.. the 99%)
+# won't be enough.
+# Something really small, that was the first thing i've figured,
+# is needed in order to replicate a client able to send and recv.
 #
 # To be really fair, this has been opensourced
 # as a poc that I'm still in the game,
 # that i spent good times and learnt something new
-# as usual. The whole crypto logic instead,
-# won't be opensourced but don't get mad!
-# you can still push yourself to the limit, break it
-# and have some fun too. <3
+# as usual. That small little things (logic) missing here,
+# prior to encryption (for instance, nonce and shared key)
+# won't be published. This, because I don't want more
+# blames from SC because stupid fellas are selling stuffs
+# built on-top of my code and researches.
+# Everything will be open and discussed with people that makes
+# a good usage of them and/or contribute to the opensource
+# sharing knowledge we are doing since more then 1 year.
 #
 ######################################################
 
