@@ -395,11 +395,6 @@ def crypto_core(w, n, s, p):
             while df > 0 and ulim + rounds < len(w):
                 s_a = m_spack[rounds]
                 w_a = w[ulim + rounds]
-
-                print(hex(s_a))
-                print(hex(w_a))
-                print('')
-
                 s_a = (w_a ^ s_a) & 0xff
                 result.append(s_a)
                 df -= 1
