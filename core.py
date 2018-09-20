@@ -27,6 +27,7 @@ import math
 
 
 salsa_const = [0x61707865, 0x6b206574, 0x3320646e, 0x79622D32]
+sc_magic = [0x5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xfc]
 
 
 def _ror(val, bits, bit_size):
@@ -184,166 +185,67 @@ def crypto_core(w, n, s, p):
         r5 = __ROR4__(r1, 25) & 0xffffffff
         rounds -= 1
 
-    r4 = t12
-    r5 = t4
-    r1 = 0
-
-    while r1 != 4:
+    rounds = 0
+    while rounds != 4:
         result.append(r10 & 0x000000ff)
         r10 = r10 >> 8
-        r1 += 1
-    r2 = 0
-    while r2 != 4:
+        rounds += 1
+    rounds = 0
+    while rounds != 4:
         result.append(r0 & 0x000000ff)
         r0 = r0 >> 8
-        r2 += 1
-    r1 = 0
-    while r1 != 4:
+        rounds += 1
+    rounds = 0
+    while rounds != 4:
         result.append(r8 & 0x000000ff)
         r8 = r8 >> 8
-        r1 += 1
-    r1 = 0
-    r2 = r5
-    while r1 != 4:
-        result.append(r4 & 0x000000ff)
-        r4 = r4 >> 8
-        r1 += 1
-    r1 = 0
-    while r1 != 4:
+        rounds += 1
+    rounds = 0
+    while rounds != 4:
+        result.append(t12 & 0x000000ff)
+        t12 = t12 >> 8
+        rounds += 1
+    rounds = 0
+    while rounds != 4:
         result.append(lr & 0x000000ff)
         lr = lr >> 8
-        r1 += 1
-    r1 = 0
-    while r1 != 4:
+        rounds += 1
+    rounds = 0
+    while rounds != 4:
         result.append(r11 & 0x000000ff)
         r11 = r11 >> 8
-        r1 += 1
-    r1 = 0
-    while r1 != 4:
-        result.append(r2 & 0x000000ff)
-        r2 = r2 >> 8
-        r1 += 1
-    r1 = 0
-    while r1 != 4:
+        rounds += 1
+    rounds = 0
+    while rounds != 4:
+        result.append(t4 & 0x000000ff)
+        t4 = t4 >> 8
+        rounds += 1
+    rounds = 0
+    while rounds != 4:
         result.append(r6 & 0x000000ff)
         r6 = r6 >> 8
-        r1 += 1
+        rounds += 1
     if len(w) < 1:
         return bytes(result)
 
     w = bytes([0] * p) + w
 
-    r2 = result[0x3]
-    r1 = result[0x2]
-    r1 = r1 | r2 << 8
-    r1 = r1 << 8
-    r0 = result[0x1]
-    r1 = r1
-    r0 = r0 + r1
-    r1 = result[0]
-    r2 = result[0x7]
-    r0 = r1 | r0 << 8
-    t1 = r0
-    r1 = result[0x6]
-    r0 = result[0x5]
-    r1 = r1 | r2 << 8
-    r0 = r0 | r1 << 8
-    r1 = result[0x4]
-    r2 = result[0xb]
-    r0 = r1 | r0 << 8
-    r1 = result[0xa]
-    r1 = r1 | r2 << 8
-    t2 = r0
-    r0 = result[0x9]
-    r0 = r0 | r1 << 8
-    r1 = result[0x8]
-    r2 = result[0xf]
-    r0 = r1 | r0 << 8
-    r1 = result[0xe]
-    t5 = r0
-    r0 = result[0xd]
-    r1 = r1 | r2 << 8
-    r0 = r0 | r1 << 8
-    t6 = r0
-    r1 = t6
-    r2 = result[0x13]
-    r0 = result[0xc]
-    r0 = r0 | r1 << 8
-    r1 = result[0x12]
-    t7 = r0
-    r0 = result[0x11]
-    r1 = r1 | r2 << 8
-    r0 = r0 | r1 << 8
-    r1 = result[0x10]
-    r0 = r1 | r0 << 8
-    r1 = result[0x17]
-    t10 = r0
-    r0 = result[0x16]
-    r1 = r1 << 8
-    r0 |= r1
-    r6 = result[0x15]
-    r2 = result[0x14]
-    r0 = r6 | r0 << 8
-    r0 = r2 | r0 << 8
-    t11 = r0
-    r0 = result[0x1b]
-    r0 = r0 << 8
-    t12 = r0
-    r0 = result[0x1a]
-    r0 |= t12
-    r6 = result[0x19]
-    r1 = result[0x18]
-    r0 = r6 | r0 << 8
-    r0 = r1 | r0 << 8
-    t13 = r0
-    r0 = result[0x1f]
-    r6 = r0 << 8
-    r0 = result[0x1e]
-    r0 |= r6
-    r1 = result[0x1d]
-    r2 = result[0x1c]
-    r0 = r1 | r0 << 8
-    r0 = r2 | r0 << 8
-    t14 = r0
-    r2 = n[0x13]
-    r1 = n[0x12]
-    r1 = r1 | r2 << 8
-    r1 = r1 << 8
-    t15 = r1
-    r1 = r0 | r2
-    r0 = r0 & r2
-    r0 = (r0 - r1) & 0xffffffff
-    r0 -= 1
-    r2 = n[0x11]
-    r1 = n[0x10]
-    r0 = t15
-    r0 |= r2
-    r0 = r1 | r0 << 8
-    t16 = r0
-    r1 = n[0x17]
-    r0 = n[0x16]
-    r0 = r0 | r1 << 8
-    r0 = r0 << 8
-    r1 = n[0x15]
-    r0 |= r1
-    r2 = n[0x14]
-    r0 = r2 | r0 << 8
-    t17 = r0
+    h_prop = h_set(result, n)
 
     result = []
     h_core_rounds = 0
     h_t_core_rounds = math.ceil(len(w) / 64)
 
     while h_core_rounds < h_t_core_rounds:
-        r0 = t1
+        r0 = h_prop[0]
         r1 = salsa_const[0]
         r0 = (r0 + r1) & 0xffffffff
-        t18 = r0
+        t1 = r0
         r0 = (r0 ^ h_core_rounds) & 0xffffffff
         r0 = (r0 << 0x10) & 0xffffffff
 
-        h_res = h_core_a([t18, t10, r0, t1, 0, salsa_const[2], t2, t11, salsa_const[3],
-                          t5, t16, t13, salsa_const[1], t7, t17, t14, t18])
+        h_res = h_core_a([t1, h_prop[4], r0, h_prop[0], 0, salsa_const[2], h_prop[1], h_prop[5], salsa_const[3],
+                          h_prop[2], h_prop[8], h_prop[6], salsa_const[1], h_prop[3], h_prop[9], h_prop[7], t1])
         rounds = 8
         while rounds > 0:
             h_res = h_core_a([h_res[15], h_res[8], h_res[16], h_res[13],
@@ -355,32 +257,32 @@ def crypto_core(w, n, s, p):
         r1 = h_res[17]
         r2 = salsa_const[0]
         r1 = (r1 + r2) & 0xffffffff
-        c_1 = r1
+        t1 = r1
         r0 = h_res[3]
         r1 = salsa_const[2]
         r0 = (r0 + r1) & 0xffffffff
-        c_2 = r0
+        t2 = r0
 
         m_stracts = [
             h_stract(salsa_const[3], h_res[6]),
             h_stract(salsa_const[1], h_res[10]),
-            h_stract(t1, h_res[13]),
-            h_stract(t2, h_res[2]),
-            h_stract(t5, h_res[5]),
-            h_stract(t7, h_res[9]),
-            h_stract(t10, h_res[8]),
-            h_stract(t11, h_res[12]),
-            h_stract(t13, h_res[1]),
-            h_stract(t14, h_res[4]),
+            h_stract(h_prop[0], h_res[13]),
+            h_stract(h_prop[1], h_res[2]),
+            h_stract(h_prop[2], h_res[5]),
+            h_stract(h_prop[3], h_res[9]),
+            h_stract(h_prop[4], h_res[8]),
+            h_stract(h_prop[5], h_res[12]),
+            h_stract(h_prop[6], h_res[1]),
+            h_stract(h_prop[7], h_res[4]),
             h_stract(h_core_rounds, h_res[18]),
             h_stract(0, h_res[7]),
-            h_stract(t16, h_res[11]),
-            h_stract(t17, h_res[0])
+            h_stract(h_prop[8], h_res[11]),
+            h_stract(h_prop[9], h_res[0])
         ]
 
         m_spack = []
-        m_spack += h_spack(c_1)
-        m_spack += h_spack(c_2)
+        m_spack += h_spack(t1)
+        m_spack += h_spack(t2)
 
         for x in m_stracts:
             m_spack += h_spack(x)
@@ -425,15 +327,11 @@ def crypto_core(w, n, s, p):
                             s_a_2.append(0)
 
                     if len(smul_values) > 0:
+                        t2 = 0
                         rounds = 0
-                        r0 = 0
                         while rounds != 0x11:
-                            r3 = smul_values[rounds]
-                            r6 = s_a_2[rounds]
-                            r0 = (r0 + r3) & 0xffffffff
-                            r0 = (r0 + r6) & 0xffffffff
-                            smul_values[rounds] = r0 & 0x000000ff
-                            r0 = r0 >> 8
+                            t1, t2 = h_aaas(smul_values[rounds], s_a_2[rounds], t2)
+                            smul_values[rounds] = t1 & 0x000000ff
                             rounds += 1
                     else:
                         smul_values = s_a_2
@@ -445,48 +343,36 @@ def crypto_core(w, n, s, p):
                         mul_add_rounds += 1
 
                     rounds = 0
-                    r0 = 0
+                    t2 = 0
                     while rounds != 0x10:
-                        r3 = mul_add_values[rounds]
-                        r0 = (r0 + r3) & 0xffffffff
-                        smul_values[rounds] = r0 & 0x000000ff
-                        r0 = r0 >> 8
+                        t1, t2 = h_aas(mul_add_values[rounds], t2)
                         rounds += 1
+
                     r1 = mul_add_values[0x10]
-                    r0 = (r0 + r1) & 0xffffffff
-                    r1 = r0 & 3
-                    r0 = r0 >> 2
+                    t2 = (t2 + r1) & 0xffffffff
+                    r1 = t2 & 3
+                    t2 = t2 >> 2
                     smul_values[rounds] = r1
-                    r0 = r0 + (r0 << 2)
+                    t2 = t2 + (t2 << 2)
 
                     rounds = 0
                     while rounds != 0x10:
-                        r3 = smul_values[rounds]
-                        r0 = (r0 + r3) & 0xffffffff
-                        smul_values[rounds] = r0 & 0x000000ff
-                        r0 = r0 >> 8
+                        t1, t2 = h_aaas(smul_values[rounds], s_a_2[rounds], t2)
+                        smul_values[rounds] = t1 & 0x000000ff
                         rounds += 1
                     w_lle_s += 0x10
             else:
                 smul_values = [00] * 0x11
 
-            rounds = 0
-            r1 = 0
-            r2_v = [0x5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xfc]
+            t2 = 0
             s_a_1 = []
+            rounds = 0
             while rounds != 0x11:
-                r6 = smul_values[rounds]
-                r2 = r2_v[rounds]
-                r1 = (r1 + r6) & 0xffffffff
-                r1 = (r1 + r2) & 0xffffffff
-                r2 = r1 & 0x000000ff
-                r1 = r1 >> 8
-                s_a_1.append(r2)
+                t1, t2 = h_aaas(smul_values[rounds], sc_magic[rounds], t2)
+                s_a_1.append(t1)
                 rounds += 1
 
             rounds = 0
-            # r1 = s_a_1[0x10]
-            # r1 = (r0 - (r1 >> 7)) & 0xffffffff
             r1 = 0xffffffff
             while rounds != 0x11:
                 r2 = smul_values[rounds]
@@ -499,19 +385,17 @@ def crypto_core(w, n, s, p):
 
             s_a_2 = result[0x10:0x20]
             s_a_2.append(0)
-            r0 = 0
+
+            t2 = 0
             rounds = 0
             while rounds != 0x11:
-                r3 = smul_values[rounds]
-                r6 = s_a_2[rounds]
-                r0 = (r0 + r3) & 0xffffffff
-                r0 = (r0 + r6) & 0xffffffff
-                r3 = r0 & 0x000000ff
-                r0 = r0 >> 8
-                smul_values[rounds] = r3
+                t1, t2 = h_aaas(smul_values[rounds], s_a_2[rounds], t2)
+                smul_values[rounds] = t1
                 rounds += 1
 
-            r = smul_values[:0x10]
+            r = []
+            if p > 0x10:
+                r = smul_values[:0x10]
             if len(w) - p >= 0x20:
                 r += result[0x20:]
             return bytes(r)
@@ -760,13 +644,109 @@ def h_core_a(a):
     return r
 
 
+def h_set(r, n):
+    h_prop = []
+    r2 = r[0x3]
+    r1 = r[0x2]
+    r1 = r1 | r2 << 8
+    r1 = r1 << 8
+    r0 = r[0x1]
+    r1 = r1
+    r0 = r0 + r1
+    r1 = r[0]
+    r2 = r[0x7]
+    r0 = r1 | r0 << 8
+    h_prop.append(r0)
+    r1 = r[0x6]
+    r0 = r[0x5]
+    r1 = r1 | r2 << 8
+    r0 = r0 | r1 << 8
+    r1 = r[0x4]
+    r2 = r[0xb]
+    r0 = r1 | r0 << 8
+    r1 = r[0xa]
+    r1 = r1 | r2 << 8
+    h_prop.append(r0)
+    r0 = r[0x9]
+    r0 = r0 | r1 << 8
+    r1 = r[0x8]
+    r2 = r[0xf]
+    r0 = r1 | r0 << 8
+    r1 = r[0xe]
+    h_prop.append(r0)
+    r0 = r[0xd]
+    r1 = r1 | r2 << 8
+    r0 = r0 | r1 << 8
+    t1 = r0
+    r1 = t1
+    r2 = r[0x13]
+    r0 = r[0xc]
+    r0 = r0 | r1 << 8
+    r1 = r[0x12]
+    h_prop.append(r0)
+    r0 = r[0x11]
+    r1 = r1 | r2 << 8
+    r0 = r0 | r1 << 8
+    r1 = r[0x10]
+    r0 = r1 | r0 << 8
+    r1 = r[0x17]
+    h_prop.append(r0)
+    r0 = r[0x16]
+    r1 = r1 << 8
+    r0 |= r1
+    r6 = r[0x15]
+    r2 = r[0x14]
+    r0 = r6 | r0 << 8
+    r0 = r2 | r0 << 8
+    h_prop.append(r0)
+    r0 = r[0x1b]
+    r0 = r0 << 8
+    t1 = r0
+    r0 = r[0x1a]
+    r0 |= t1
+    r6 = r[0x19]
+    r1 = r[0x18]
+    r0 = r6 | r0 << 8
+    r0 = r1 | r0 << 8
+    h_prop.append(r0)
+    r0 = r[0x1f]
+    r6 = r0 << 8
+    r0 = r[0x1e]
+    r0 |= r6
+    r1 = r[0x1d]
+    r2 = r[0x1c]
+    r0 = r1 | r0 << 8
+    r0 = r2 | r0 << 8
+    h_prop.append(r0)
+    r2 = n[0x13]
+    r1 = n[0x12]
+    r1 = r1 | r2 << 8
+    r1 = r1 << 8
+    t1 = r1
+    r1 = r0 | r2
+    r0 = r0 & r2
+    r0 = (r0 - r1) & 0xffffffff
+    r0 -= 1
+    r2 = n[0x11]
+    r1 = n[0x10]
+    r0 = t1
+    r0 |= r2
+    r0 = r1 | r0 << 8
+    h_prop.append(r0)
+    r1 = n[0x17]
+    r0 = n[0x16]
+    r0 = r0 | r1 << 8
+    r0 = r0 << 8
+    r1 = n[0x15]
+    r0 |= r1
+    r2 = n[0x14]
+    r0 = r2 | r0 << 8
+    h_prop.append(r0)
+    return h_prop
+
+
 def h_stract(a, b):
-    r2 = b
-    r3 = a
-    r2 = (-1 - r2) & 0xffffffff
-    r3 -= 1
-    r2 = r3 - r2
-    return r2 & 0xffffffff
+    return ((a - 1) - ((-1 - b) & 0xffffffff)) & 0xffffffff
 
 
 def h_spack(a):
@@ -815,3 +795,9 @@ def h_mul_add_fields(r, s1, w1):
             r -= 1
     f_s.append(0)
     return f_s + fields
+
+
+def h_aaas(a, b, c):
+    b = (((c + a) & 0xffffffff + b) & 0xffffffff) & 0x000000ff
+    c = c >> 8
+    return b, c
