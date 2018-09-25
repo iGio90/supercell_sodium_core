@@ -250,6 +250,10 @@ def crypto_core(w, n, s, p):
     if len(w) < 1:
         return bytes(result)
 
+    if p == 0x10:
+        if len(w) < 64:
+            p = 0
+
     w = bytes([0] * p) + w
 
     h_prop = h_set(result, n)
@@ -416,10 +420,16 @@ def crypto_core(w, n, s, p):
                 rounds += 1
 
             r = []
-            if p > 0x10:
+
+            if p > 0x10 and len(w) >= 0x30:
                 r = smul_values[:0x10]
             if len(w) - p >= 0x20:
                 r += result[0x20:]
+            elif len(w) - p >= 0x10:
+                r += result[0x10:]
+            else:
+                r += result
+
             return bytes(r)
         else:
             while rounds < 64:
